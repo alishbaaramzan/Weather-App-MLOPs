@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Advisory - ML Powered</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 1s ease;
+        overflow: hidden;
+    }
+    .sunny { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); animation: sunnyGlow 3s ease-in-out infinite alternate; }
+    .rainy { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); animation: rainyPulse 2s ease-in-out infinite; }
+    .snowy { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); animation: snowyShimmer 4s ease-in-out infinite alternate; }
+    @keyframes sunnyGlow {0% { filter: brightness(1); }100% { filter: brightness(1.2); }}
+    @keyframes rainyPulse {0%,100% { filter: brightness(0.8); }50% { filter: brightness(1); }}
+    @keyframes snowyShimmer {0% { filter: brightness(1.1); }100% { filter: brightness(1.3); }}
+    .particles { position: fixed; width: 100%; height: 100%; pointer-events: none; }
+    .particle { position: absolute; background: white; border-radius: 50%; opacity: 0.7; animation: fall 10s linear infinite; }
+    @keyframes fall { to { transform: translateY(100vh); } }
+    .container {
+        background: rgba(255,255,255,0.95); border-radius:30px; padding:50px; box-shadow:0 30px 60px rgba(0,0,0,0.3);
+        max-width:600px; width:90%; backdrop-filter:blur(10px); animation:slideUp 0.5s ease-out;
+    }
+    @keyframes slideUp { from { opacity:0; transform:translateY(50px);} to {opacity:1; transform:translateY(0);} }
+    h1 { text-align:center; color:#333; margin-bottom:10px; font-size:2.5rem; }
+    .subtitle { text-align:center; color:#666; margin-bottom:30px; font-size:1.1rem; }
+    .location { text-align:center; margin-bottom:30px; }
+    .location input { padding:15px 25px; border:2px solid #ddd; border-radius:50px; font-size:1rem; width:70%; transition:all 0.3s; }
+    .location input:focus { outline:none; border-color:#667eea; box-shadow:0 0 20px rgba(102,126,234,0.3); }
+    .location button {
+        padding:15px 30px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white;
+        border:none; border-radius:50px; font-size:1rem; cursor:pointer; margin-left:10px; transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .location button:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(102,126,234,0.4); }
+    .location button:active { transform:translateY(0); }
+    .weather-display { text-align:center; margin:40px 0; display:none; }
+    .weather-display.show { display:block; animation:fadeIn 0.5s ease-in; }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+    .temperature { font-size:4rem; font-weight:bold; color:#333; margin:20px 0; }
+    .weather-icon { font-size:6rem; margin:20px 0; animation:bounce 2s ease-in-out infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-20px);} }
+    .condition { font-size:1.5rem; color:#555; margin:10px 0; font-weight:500; }
+    .recommendation { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:30px; border-radius:20px;
+        margin:30px 0; text-align:center; box-shadow:0 10px 30px rgba(102,126,234,0.4); display:none; animation:scaleIn 0.5s ease-out;
+    }
+    .recommendation.show { display:block; }
+    @keyframes scaleIn { from{transform:scale(0.9); opacity:0;} to{transform:scale(1); opacity:1;} }
+    .recommendation h2 { font-size:2rem; margin-bottom:15px; }
+    .recommendation-icon { font-size:4rem; margin:20px 0; }
+    .recommendation p { font-size:1.2rem; line-height:1.6; }
+    .details { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:30px; display:none; }
+    .details.show { display:grid; }
+    .detail-card { background:#f8f9fa; padding:20px; border-radius:15px; text-align:center; transition:transform 0.2s; }
+    .detail-card:hover { transform:translateY(-5px); }
+    .detail-label { color:#666; font-size:0.9rem; margin-bottom:10px; }
+    .detail-value { color:#333; font-size:1.5rem; font-weight:bold; }
+    .loading { display:none; text-align:center; margin:30px 0; }
+    .loading.show { display:block; }
+    .spinner { border:4px solid #f3f3f3; border-top:4px solid #667eea; border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; margin:20px auto; }
+    @keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
+    .error { background:#ff6b6b; color:white; padding:15px; border-radius:10px; text-align:center; margin:20px 0; display:none; }
+    .error.show { display:block; animation:shake 0.5s; }
+    @keyframes shake {0%,100%{transform:translateX(0);}25%{transform:translateX(-10px);}75%{transform:translateX(10px);} }
+    .footer { text-align:center; margin-top:30px; color:#999; font-size:0.9rem; }
+    .ml-badge { display:inline-block; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:5px 15px; border-radius:20px; font-size:0.8rem; margin-top:10px; }
+</style>
+</head>
+<body class="sunny">
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <h1>🌤️ Weather Advisory</h1>
+    <p class="subtitle">ML-Powered Weather Recommendations</p>
+
+    <div class="location">
+        <input type="text" id="cityInput" placeholder="Enter your city..." value="Islamabad">
+        <button onclick="getWeather()">Check Weather</button>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analyzing weather conditions...</p>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="weather-display" id="weatherDisplay">
+        <div class="weather-icon" id="weatherIcon">☀️</div>
+        <div class="temperature" id="temperature">--°C</div>
+        <div class="condition" id="condition">--</div>
+    </div>
+
+    <div class="recommendation" id="recommendation">
+        <h2 id="recTitle">Recommendation</h2>
+        <div class="recommendation-icon" id="recIcon">🌤️</div>
+        <p id="recMessage">Loading...</p>
+    </div>
+
+    <div class="details" id="details">
+        <div class="detail-card">
+            <div class="detail-label">Humidity</div>
+            <div class="detail-value" id="humidity">--</div>
+        </div>
+        <div class="detail-card">
+            <div class="detail-label">Wind Speed</div>
+            <div class="detail-value" id="windSpeed">--</div>
+        </div>
+        <div class="detail-card">
+            <div class="detail-label">Pressure</div>
+            <div class="detail-value" id="pressure">--</div>
+        </div>
+        <div class="detail-card">
+            <div class="detail-label">Visibility</div>
+            <div class="detail-value" id="visibility">--</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Powered by Machine Learning</p>
+        <span class="ml-badge">🤖 RandomForest ML Model</span>
+    </div>
+</div>
+
+<script>
+const WEATHER_API_KEY = 'd66b34c0f95cda07f4a6e118051b28d3';
+const ML_API_URL = window.location.origin;
+
+// Create particles
+function createParticles(type,count){
+    const container = document.getElementById('particles');
+    container.innerHTML='';
+    for(let i=0;i<count;i++){
+        const p=document.createElement('div');
+        p.className='particle';
+        p.style.left=Math.random()*100+'%';
+        p.style.top=-Math.random()*100+'%';
+        p.style.width=(type==='snow'?5:2)+Math.random()*3+'px';
+        p.style.height=p.style.width;
+        p.style.animationDuration=5+Math.random()*10+'s';
+        p.style.animationDelay=Math.random()*5+'s';
+        p.style.opacity=Math.random()*0.5+0.2;
+        container.appendChild(p);
+    }
+}
+
+// Map ML prediction to valid class
+function mapMLPrediction(pred){
+    const valid=['rain','snow','sunny'];
+    const type=(pred.precipitation_type||'sunny').toLowerCase();
+    return valid.includes(type)?type:'sunny';
+}
+
+async function fetchWeatherData(city){
+    const res=await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${WEATHER_API_KEY}&units=metric`);
+    if(!res.ok){
+        const data=await res.json();
+        throw new Error(data.message || 'Weather fetch failed');
+    }
+    return await res.json();
+}
+
+async function getMLPrediction(weatherData){
+    try{
+        const now=new Date();
+        const input={
+            hour:now.getHours(),
+            day_of_week:now.getDay(),
+            month:now.getMonth()+1,
+            season:Math.floor((now.getMonth()%12+3)/3),
+            "Apparent Temperature (C)":weatherData.main.temp,
+            Humidity:weatherData.main.humidity/100,
+            "Wind Speed (km/h)":weatherData.wind.speed*3.6,
+            "Wind Bearing (degrees)":weatherData.wind.deg,
+            "Visibility (km)":weatherData.visibility/1000,
+            "Pressure (millibars)":weatherData.main.pressure,
+            Summary:weatherData.weather[0].description
+        };
+        const res=await fetch(`${ML_API_URL}/predict`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(input)
+        });
+        if(!res.ok) throw new Error('ML API error');
+        return await res.json();
+    }catch(e){
+        // fallback
+        return {precipitation_type:weatherData.weather[0].main.toLowerCase(), temperature_celsius:weatherData.main.temp};
+    }
+}
+
+async function getWeather(){
+    const city=document.getElementById('cityInput').value.trim();
+    if(!city) return;
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('error').classList.remove('show');
+    document.getElementById('weatherDisplay').classList.remove('show');
+    document.getElementById('recommendation').classList.remove('show');
+    document.getElementById('details').classList.remove('show');
+    try{
+        const weatherData=await fetchWeatherData(city);
+        const prediction=await getMLPrediction(weatherData);
+        updateUI(weatherData,prediction);
+    }catch(e){
+        showError(e.message);
+        console.error(e);
+    }finally{
+        document.getElementById('loading').classList.remove('show');
+    }
+}
+
+function updateUI(weather,prediction){
+    document.getElementById('temperature').textContent=Math.round(weather.main.temp)+'°C';
+    document.getElementById('condition').textContent=weather.weather[0].description;
+    document.getElementById('humidity').textContent=Math.round(weather.main.humidity)+'%';
+    document.getElementById('windSpeed').textContent=Math.round(weather.wind.speed*3.6)+' km/h';
+    document.getElementById('pressure').textContent=Math.round(weather.main.pressure)+' mb';
+    document.getElementById('visibility').textContent=(weather.visibility/1000).toFixed(1)+' km';
+
+    const weatherType=mapMLPrediction(prediction);
+    let icon, recIcon, recTitle, recMessage, particleCount;
+    if(weatherType==='rain'){
+        icon='🌧️'; recIcon='☔'; recTitle='Take an Umbrella!'; recMessage="Rain is expected. Don't forget your umbrella!"; particleCount=100;
+    }else if(weatherType==='snow'){
+        icon='❄️'; recIcon='🧥'; recTitle='Wear a Warm Coat!'; recMessage="Snowy weather outside. Stay warm!"; particleCount=80;
+    }else{
+        icon='☀️'; recIcon='🕶️'; recTitle='Enjoy the Sun!'; recMessage="Perfect weather! Enjoy the sunshine!"; particleCount=30;
+    }
+
+    document.body.className=weatherType;
+    document.getElementById('weatherIcon').textContent=icon;
+    document.getElementById('recIcon').textContent=recIcon;
+    document.getElementById('recTitle').textContent=recTitle;
+    document.getElementById('recMessage').textContent=recMessage;
+    createParticles(weatherType,particleCount);
+
+    document.getElementById('weatherDisplay').classList.add('show');
+    document.getElementById('recommendation').classList.add('show');
+    document.getElementById('details').classList.add('show');
+}
+
+function showError(msg){
+    const el=document.getElementById('error');
+    el.textContent=msg;
+    el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),5000);
+}
+
+window.onload=getWeather;
+document.getElementById('cityInput').addEventListener('keypress',(e)=>{if(e.key==='Enter') getWeather();});
+</script>
+</body>
+</html>

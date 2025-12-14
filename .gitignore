@@ -1,0 +1,112 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Environment variables (IMPORTANT!)
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Project specific
+data/*.csv
+!data/.gitkeep
+models/*.pkl
+!models/.gitkeep
+plots/*.png
+!plots/.gitkeep# ==================== Python ====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ==================== Virtual Environments ====================
+venv/
+env/
+ENV/
+.venv/
+
+# ==================== Environment Variables ====================
+.env
+
+# ==================== IDE / Editors ====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ==================== Jupyter ====================
+.ipynb_checkpoints/
+*.ipynb
+
+# ==================== Project Data ====================
+data/*.csv
+!data/.gitkeep
+
+# ==================== Models (TRACKED for CI) ====================
+models/
+!models/.gitkeep
+
+# ==================== Plots ====================
+plots/*.png
+!plots/.gitkeep
+
+# ==================== Logs ====================
+logs/*.log
+!logs/.gitkeep
+
+# ==================== Testing ====================
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# ==================== Docker ====================
+.dockerignore
+
+# ==================== OS ====================
+Thumbs.db
+
+logs/*.log
+!logs/.gitkeep
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Docker
+.dockerignore
+
+# OS
+Thumbs.db
