@@ -33,7 +33,8 @@ app = FastAPI(
     description="ML-powered weather prediction API",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    root_path="/spaces/alishbaramzan/weather-ml-api"
 )
 
 # ==================== Middleware ====================
