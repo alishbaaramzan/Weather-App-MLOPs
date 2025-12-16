@@ -11,6 +11,8 @@ pinned: false
 
 A lightweight, production-ready MLOps system for weather prediction, integrating machine learning, workflow orchestration, automated CI/CD, containerization, and an interactive web interface — all deployed on free infrastructure.
 
+https://alishbaramzan-weather-ml-api.hf.space/docs
+
 # Overview
 
 This project demonstrates a complete end-to-end MLOps workflow using open-source tools. It supports multiple ML tasks (classification, regression, clustering), exposes a FastAPI backend for real-time predictions, and provides a responsive web UI with dynamic weather animations and actionable recommendations.
@@ -47,7 +49,7 @@ Data → Prefect → Training Pipeline → Model Artifacts
 
 # Local Setup
 
-git clone https://github.com/<your-username>/<repo>.git
+git clone https://github.com/alishbaaramzan/Weather-App-MLOPs.git
 
 cd <repo>
 
